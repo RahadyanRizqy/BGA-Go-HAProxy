@@ -36,12 +36,6 @@ func LoadBgaEnv() BgaEnv {
 		netIfaceRate = 12500000
 	}
 
-	haproxySetWeight, err := strconv.ParseBool(os.Getenv("HAPROXY_SET_WEIGHT"))
-	if err != nil {
-		fmt.Println("2. Error parsing boolean:", err)
-		haproxySetWeight = false
-	}
-
 	haproxyWeight, err := strconv.Atoi(os.Getenv("HAPROXY_WEIGHT"))
 	if err != nil {
 		fmt.Println("2. Error parsing boolean:", err)
@@ -115,25 +109,24 @@ func LoadBgaEnv() BgaEnv {
 	}
 
 	return BgaEnv{
-		APIToken:         os.Getenv("API_TOKEN"),   // for logging purpose
-		PveAPIURL:        os.Getenv("PVE_API_URL"), // for logging purpose
-		HAProxySock:      os.Getenv("HAPROXY_SOCK"),
-		HAProxyBackend:   os.Getenv("HAPROXY_BACKEND"),
-		VMNames:          parseVMMap(os.Getenv("VM_NAMES")),
-		NetIfaceRate:     netIfaceRate,
-		BGAUpdater:       bgaUpdater,
-		HAProxySetWeight: haproxySetWeight,
-		HAProxyWeight:    haproxyWeight,
-		Logger:           logger,
-		ConsolePrint:     consolePrint,
-		NumTasks:         numTasks,
-		NumVMs:           numVMs,
-		PopulationSize:   populationSize,
-		NumElites:        numElites,
-		MutationRate:     mutationRate,
-		FixedAlpha:       fixedAlpha,
-		GenerateDelay:    generateDelay,
-		TaskLoad:         taskLoad,
-		PositiveConst:    positiveConst,
+		APIToken:       os.Getenv("API_TOKEN"),   // for logging purpose
+		PveAPIURL:      os.Getenv("PVE_API_URL"), // for logging purpose
+		HAProxySock:    os.Getenv("HAPROXY_SOCK"),
+		HAProxyBackend: os.Getenv("HAPROXY_BACKEND"),
+		VMNames:        parseVMMap(os.Getenv("VM_NAMES")),
+		NetIfaceRate:   netIfaceRate,
+		BGAUpdater:     bgaUpdater,
+		HAProxyWeight:  haproxyWeight,
+		Logger:         logger,
+		ConsolePrint:   consolePrint,
+		NumTasks:       numTasks,
+		NumVMs:         numVMs,
+		PopulationSize: populationSize,
+		NumElites:      numElites,
+		MutationRate:   mutationRate,
+		FixedAlpha:     fixedAlpha,
+		GenerateDelay:  generateDelay,
+		TaskLoad:       taskLoad,
+		PositiveConst:  positiveConst,
 	}
 }
