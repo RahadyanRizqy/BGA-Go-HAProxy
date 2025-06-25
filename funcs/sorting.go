@@ -39,26 +39,31 @@ func ScorePriority(stats map[string]utils.VMStats) map[string]utils.VMPriority {
 func ConvertRanked(result map[string][3]float64) map[string]utils.VMPriority {
 	ranked := make(map[string]utils.VMPriority)
 
-	// Buat slice untuk sorting berdasarkan nilai task (Value)
+	// Buat slice yang bisa diurutkan berdasarkan weight descending
 	type kv struct {
-		Name  string
-		Value float64
+		Name   string
+		Weight float64
+		Value  float64
 	}
 	var sorted []kv
 	for name, vals := range result {
-		sorted = append(sorted, kv{name, vals[0]}) // vals[0] = task total
+		sorted = append(sorted, kv{
+			Name:   name,
+			Weight: vals[1], // weight
+			Value:  vals[0], // total task
+		})
 	}
 
-	// Urutkan ascending → prioritas rendah untuk task kecil
+	// Urutkan weight descending → priority 1 untuk weight terbesar
 	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Value < sorted[j].Value
+		return sorted[i].Weight > sorted[j].Weight
 	})
 
 	for i, item := range sorted {
 		ranked[item.Name] = utils.VMPriority{
-			Value:    item.Value,
-			Priority: i + 1,                     // 1 = paling kecil
-			Weight:   int(result[item.Name][1]), // dari hasil weight
+			Value:    item.Value, // total task
+			Priority: i + 1,      // priority 1 untuk weight terbesar
+			Weight:   int(item.Weight),
 		}
 	}
 

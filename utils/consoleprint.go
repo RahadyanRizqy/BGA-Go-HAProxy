@@ -7,7 +7,7 @@ import (
 
 var prevWeights map[string]float64
 
-func ConsolePrint(result map[string][3]float64, iter int) ([]VMWeight, bool) {
+func ConsolePrint(result map[string][3]float64, iter int, cfg BgaEnv) ([]VMWeight, bool) {
 	// Ambil weight saat ini
 	currentWeights := make(map[string]float64)
 	for name, values := range result {
@@ -53,14 +53,16 @@ func ConsolePrint(result map[string][3]float64, iter int) ([]VMWeight, bool) {
 	})
 
 	// Cetak tabel
-	fmt.Println("Pemetaan Tugas ke VM:")
-	fmt.Println("----------------------------------------------------------------")
-	fmt.Printf("| %-7s | %-30s | %-6s |\n", "ID VM", "Total tugas yang bisa ditangani", "Weight")
-	fmt.Println("----------------------------------------------------------------")
-	for _, vm := range vms {
-		fmt.Printf("| %-5s | %-30.0f | %-6.0f |\n", vm.Name, vm.TaskTotal, vm.Weight)
+	if cfg.ConsolePrint {
+		fmt.Println("Pemetaan Tugas ke VM:")
+		fmt.Println("----------------------------------------------------------------")
+		fmt.Printf("| %-7s | %-30s | %-6s |\n", "ID VM", "Total tugas yang bisa ditangani", "Weight")
+		fmt.Println("----------------------------------------------------------------")
+		for _, vm := range vms {
+			fmt.Printf("| %-5s | %-30.0f | %-6.0f |\n", vm.Name, vm.TaskTotal, vm.Weight)
+		}
+		fmt.Println("----------------------------------------------------------------")
 	}
-	fmt.Println("----------------------------------------------------------------")
 
 	return vms, true
 }

@@ -184,7 +184,7 @@ func Start() {
 		// for id, values := range newRes {
 		// 	fmt.Printf("VM%d, %.2f, %.0f, %.2f\n", id, values[0], values[1], values[2])
 		// }
-		weightedVMs, status := utils.ConsolePrint(newRes, iter)
+		weightedVMs, status := utils.ConsolePrint(newRes, iter, cfg)
 		if status {
 			changeCount++
 		}
