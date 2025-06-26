@@ -152,7 +152,7 @@ func mutation(k *utils.Chromosome) {
 }
 
 func Start() {
-	fmt.Println("Memulai BGA")
+	fmt.Println("BGA Started!")
 	seedInit()
 	population := populationInit()
 	for i := 0; i < cfg.PopulationSize; i++ {
