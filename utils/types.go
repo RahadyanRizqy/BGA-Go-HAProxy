@@ -53,25 +53,24 @@ type Chromosome struct {
 }
 
 type BgaEnv struct {
-	APIToken         string
-	PveAPIURL        string
-	HAProxySock      string
-	HAProxyBackend   string
-	VMNames          map[string]bool
-	NetIfaceRate     float64
-	BGAUpdater       bool
-	HAProxySetWeight bool
-	HAProxyWeight    int
-	Logger           bool
-	ConsolePrint     bool
-	NumTasks         int
-	NumVMs           int // VMShareIdeal from NumTasks/NumVMs
-	PopulationSize   int
-	NumElites        int
-	MutationRate     float64
-	FixedAlpha       float64
-	GenerateDelay    int
-	FetchDelay       int
-	TaskLoad         float64 // TaskLoad = VMPower
-	PositiveConst    float64
+	APIToken       string
+	PveAPIURL      string
+	HAProxySock    string
+	HAProxyBackend string
+	VMNames        map[string]bool
+	NetIfaceRate   float64
+	BGAUpdater     bool
+	HAProxyWeight  int
+	Logger         bool
+	ConsolePrint   bool
+	NumTasks       int
+	NumVMs         int // VMShareIdeal from NumTasks/NumVMs
+	PopulationSize int
+	NumElites      int
+	MutationRate   float64
+	FixedAlpha     float64
+	GenerateDelay  int
+	FetchDelay     int
+	TaskLoad       float64 // TaskLoad = VMPower
+	PositiveConst  float64
 }
