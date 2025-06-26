@@ -8,6 +8,7 @@ import (
 var prevWeights map[string]float64
 
 func ConsolePrint(result map[string][3]float64, iter int, cfg BgaEnv) ([]VMWeight, bool) {
+
 	// Ambil weight saat ini
 	currentWeights := make(map[string]float64)
 	for name, values := range result {
@@ -28,14 +29,16 @@ func ConsolePrint(result map[string][3]float64, iter int, cfg BgaEnv) ([]VMWeigh
 	prevWeights = currentWeights
 
 	// Cetak iterasi dan fitness
-	fmt.Printf("\n--- Iterasi %d ---\n", iter+1)
+	if cfg.ConsolePrint {
+		fmt.Printf("\n--- Iterasi %d ---\n", iter+1)
 
-	var fitness float64
-	for _, values := range result {
-		fitness = values[2]
-		break
+		var fitness float64
+		for _, values := range result {
+			fitness = values[2]
+			break
+		}
+		fmt.Printf("Fitness: %.2f\n", fitness)
 	}
-	fmt.Printf("Fitness: %.2f\n", fitness)
 
 	// Buat slice VMWeight
 	var vms []VMWeight
