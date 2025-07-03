@@ -175,20 +175,13 @@ func Start() {
 		currentBest := utils.Chromosome{Genes: make([]int, cfg.NumTasks), Fitness: population[0].Fitness}
 		copy(currentBest.Genes, population[0].Genes)
 
-		// utils.ConsolePrint(currentBest, iter, cfg)
-		// changeCount, changeStatus := funcs.CheckWeightChange(currentBest, iter, cfg)
-		// funcs.WeightChange(currentBest, cfg, changeStatus)
+		newRes := funcs.WeightAssignment(currentBest, cfg)
 
-		// fmt.Println(currentBest)
-		newRes := funcs.AssignWeightByTaskGenes(currentBest, cfg)
-		// for id, values := range newRes {
-		// 	fmt.Printf("VM%d, %.2f, %.0f, %.2f\n", id, values[0], values[1], values[2])
-		// }
 		weightedVMs, status := utils.ConsolePrint(newRes, iter, cfg)
 		if status {
 			changeCount++
+			funcs.ChangeWeight(weightedVMs, cfg)
 		}
-		funcs.ChangeWeight(weightedVMs, status, cfg)
 
 		// -- LOGGER STARTS -- //
 		// Process VM stats and calculate metrics

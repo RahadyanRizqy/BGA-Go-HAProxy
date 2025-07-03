@@ -6,11 +6,7 @@ import (
 	"os/exec"
 )
 
-func ChangeWeight(result []utils.VMWeight, status bool, cfg utils.BgaEnv) {
-	if !status {
-		return // Tidak perlu ubah jika tidak ada perubahan
-	}
-
+func ChangeWeight(result []utils.VMWeight, cfg utils.BgaEnv) {
 	for _, vm := range result {
 		// Format perintah
 		cmdStr := fmt.Sprintf(`echo "set weight %s/%s %d" | socat stdio %s`,

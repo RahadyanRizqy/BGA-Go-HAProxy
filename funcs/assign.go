@@ -25,7 +25,7 @@ func Sum(arr []int) int {
 	return total
 }
 
-func AssignWeightByTaskGenes(chromosome utils.Chromosome, cfg utils.BgaEnv) map[string][3]float64 {
+func WeightAssignment(chromosome utils.Chromosome, cfg utils.BgaEnv) map[string][3]float64 {
 	// Step 1: Hitung total tugas per VM ID (angka)
 	taskCounts := make(map[int]int)
 	for _, vmID := range chromosome.Genes {
