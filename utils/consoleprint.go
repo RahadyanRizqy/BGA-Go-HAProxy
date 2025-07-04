@@ -15,30 +15,30 @@ func ConsolePrint(result map[string][3]float64, iter int, cfg BgaEnv) ([]VMWeigh
 		currentWeights[name] = values[1]
 	}
 
-	// // Bandingkan dengan iterasi sebelumnya
-	// if prevWeights != nil {
-	// 	for name, weight := range currentWeights {
-	// 		if prev, exists := prevWeights[name]; exists && prev == weight {
-	// 			// Jika ada satu weight sama, return tanpa mencetak
-	// 			return nil, false
-	// 		}
-	// 	}
-	// }
-
-	weightChanged := false
-
+	// Bandingkan dengan iterasi sebelumnya
 	if prevWeights != nil {
 		for name, weight := range currentWeights {
-			if prev, exists := prevWeights[name]; !exists || prev != weight {
-				weightChanged = true
-				break
+			if prev, exists := prevWeights[name]; exists && prev == weight {
+				// Jika ada satu weight sama, return tanpa mencetak
+				return nil, false
 			}
 		}
-
-		if !weightChanged {
-			return nil, false
-		}
 	}
+
+	// weightChanged := false
+
+	// if prevWeights != nil {
+	// 	for name, weight := range currentWeights {
+	// 		if prev, exists := prevWeights[name]; !exists || prev != weight {
+	// 			weightChanged = true
+	// 			break
+	// 		}
+	// 	}
+
+	// 	if !weightChanged {
+	// 		return nil, false
+	// 	}
+	// }
 
 	// Simpan weight saat ini untuk iterasi selanjutnya
 	prevWeights = currentWeights
