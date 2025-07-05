@@ -8,6 +8,18 @@ import (
 	"time"
 )
 
+func ConsolePrint(ranked map[string]VMRank, cfg BgaEnv) error {
+	if cfg.ConsolePrint {
+		fmt.Println("\n== Detailed Output ==")
+		for name, vm := range ranked {
+			fmt.Printf("%s\tWeight: %d\tPriority: %d\tValue: %.6f\tFitness: %.6f\n",
+				name, vm.Weight, vm.Priority, vm.Value, vm.Fitness)
+		}
+		fmt.Printf("\n")
+	}
+	return nil
+}
+
 func InitCSV(cfg BgaEnv) string {
 	if cfg.Logger {
 
@@ -53,7 +65,7 @@ func StoreCSV(
 	unix_timestamp int64,
 	timestamp string,
 	stats map[string]VMStats,
-	ranked map[string]VMPriority,
+	ranked map[string]VMRank,
 	netIfaceRate float64,
 ) error {
 	if cfg.Logger {
@@ -99,11 +111,3 @@ func StoreCSV(
 
 	return nil
 }
-
-// func Logger(currentBest Chromosome, iter int, change int) {
-// 	InitClient()
-// 	cfg := LoadBgaEnv()
-// 	csvFileName := InitCSV(cfg)
-// 	prevTime := time.Now()
-
-// }

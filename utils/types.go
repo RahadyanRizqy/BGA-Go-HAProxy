@@ -23,6 +23,19 @@ type VMPriority struct {
 	Weight   int
 }
 
+type VMRank struct {
+	Value    float64
+	Priority int
+	Weight   int
+	Fitness  float64
+}
+
+type VMInfo struct {
+	Name string
+	Load float64
+	ID   int // numerik ID (1-based)
+}
+
 type ActiveRates struct {
 	Rx float64 // Receive rate in bytes/sec
 	Tx float64 // Transmit rate in bytes/sec
@@ -59,7 +72,7 @@ type BgaEnv struct {
 	HAProxyBackend string
 	VMNames        map[string]bool
 	NetIfaceRate   float64
-	BGAUpdater     bool
+	BgaUpdater     bool
 	HAProxyWeight  int
 	Logger         bool
 	ConsolePrint   bool
@@ -73,4 +86,5 @@ type BgaEnv struct {
 	FetchDelay     int
 	TaskLoad       float64 // TaskLoad = VMPower
 	PositiveConst  float64
+	Strict         bool
 }

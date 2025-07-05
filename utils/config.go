@@ -108,6 +108,12 @@ func LoadBgaEnv() BgaEnv {
 		positiveConst = 0.00001
 	}
 
+	strict, err := strconv.ParseBool(os.Getenv("STRICT"))
+	if err != nil {
+		fmt.Println("Error parsing boolean:", err)
+		strict = false
+	}
+
 	return BgaEnv{
 		APIToken:       os.Getenv("API_TOKEN"),   // for logging purpose
 		PveAPIURL:      os.Getenv("PVE_API_URL"), // for logging purpose
@@ -115,7 +121,7 @@ func LoadBgaEnv() BgaEnv {
 		HAProxyBackend: os.Getenv("HAPROXY_BACKEND"),
 		VMNames:        parseVMMap(os.Getenv("VM_NAMES")),
 		NetIfaceRate:   netIfaceRate,
-		BGAUpdater:     bgaUpdater,
+		BgaUpdater:     bgaUpdater,
 		HAProxyWeight:  haproxyWeight,
 		Logger:         logger,
 		ConsolePrint:   consolePrint,
@@ -128,5 +134,6 @@ func LoadBgaEnv() BgaEnv {
 		GenerateDelay:  generateDelay,
 		TaskLoad:       taskLoad,
 		PositiveConst:  positiveConst,
+		Strict:         strict,
 	}
 }

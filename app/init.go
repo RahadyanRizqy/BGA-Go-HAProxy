@@ -17,11 +17,12 @@ var (
 	vmShareIdeal   = float64(cfg.NumTasks / cfg.NumVMs)
 	prevStats      = make(map[string]utils.VM)
 	prevScores     = make(map[string]float64)
+	prevWeights    = make(map[string]int)
 	activeRates    = make(map[string]utils.ActiveRates)
 	lastValidRates = make(map[string]utils.ActiveRates)
 	client         *http.Client
 	fetchCount     int
-	changeCount    int = 0
+	updateCount    int
 	logLine        int = 1
 )
 
@@ -153,70 +154,78 @@ func mutation(k *utils.Chromosome) {
 
 func Start() {
 	fmt.Println("BGA Started!")
+	if cfg.Strict {
+		fmt.Println("Strict mode!")
+	}
+
+	/*
+		Random Seed Initialization
+	*/
 	seedInit()
 	population := populationInit()
+
+	/*
+		Fitness Calculation
+	*/
 	for i := 0; i < cfg.PopulationSize; i++ {
 		fitnessCalc(&population[i])
 	}
 
-	// FETCH API //
 	InitClient()
 	csvFileName := utils.InitCSV(cfg)
 	prevTime := time.Now()
-	// FETCH API //
 
-	iter := 0
+	iter := 1
 	for {
-		fetchCount++
+		time.Sleep(time.Duration(cfg.GenerateDelay) * time.Millisecond)
 		now := time.Now()
 		delta := now.Sub(prevTime).Seconds()
+		fetchCount++
+
+		/*
+			Sort Generated Population by its Fitness
+		*/
 		sort.Slice(population, func(i, j int) bool { return population[i].Fitness < population[j].Fitness })
 
+		/*
+			Store its current best
+		*/
 		currentBest := utils.Chromosome{Genes: make([]int, cfg.NumTasks), Fitness: population[0].Fitness}
-		copy(currentBest.Genes, population[0].Genes)
+		copy(currentBest.Genes, population[0].Genes) // <- COPY
 
-		newRes := funcs.WeightAssignment(currentBest, cfg)
+		/*
+			Current Result for Weight Assignment
+		*/
+		currentRes := funcs.CalcPriorityWeight(currentBest, cfg)
 
-		weightedVMs, status := utils.ConsolePrint(newRes, iter, cfg)
-		if status {
-			changeCount++
-			funcs.ChangeWeight(weightedVMs, cfg)
-		}
+		/*
+			Strict or Loose
+		*/
+		if cfg.Strict { // Strict means new weight of each VM must different from previous one
+			validate1 := funcs.AllWeightValidation(currentRes, prevWeights)
 
-		// -- LOGGER STARTS -- //
-		// Process VM stats and calculate metrics
-		stats, err := funcs.FetchVMs(cfg, client)
-		if err != nil {
-			fmt.Printf("Polling error: %v\n", err)
-			continue
-		}
-
-		// Process VM stats and calculate metrics
-		currentStats := make(map[string]utils.VMStats)
-		for _, vm := range stats {
-			if !cfg.VMNames[vm.Name] {
-				continue
+			if validate1 {
+				updateCount++
+				fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d", updateCount, iter)
+				funcs.SetWeight(currentRes, cfg)
+				utils.ConsolePrint(currentRes, cfg)
+				for name, info := range currentRes {
+					prevWeights[name] = info.Weight // update previous
+				}
 			}
+		} else { // Loose means new weight of each VM has swapped not all but some
+			validate2 := funcs.SomeWeightValidation(currentRes, prevWeights)
 
-			stats := funcs.PreviousStats(vm, delta, cfg.NetIfaceRate, lastValidRates, prevStats, activeRates)
-			currentStats[vm.Name] = stats
+			if validate2 {
+				updateCount++
+				fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d", updateCount, iter)
+				funcs.SetWeight(currentRes, cfg)
+				utils.ConsolePrint(currentRes, cfg)
+				for name, info := range currentRes {
+					prevWeights[name] = info.Weight // update previous
+				}
+			}
 		}
-
-		rankedVMs := funcs.ConvertRanked(newRes)
-		utils.StoreCSV(
-			cfg,
-			csvFileName,
-			&logLine,
-			fetchCount,
-			changeCount,
-			now.Unix(),
-			now.Format("2006-01-02 15:04:05"),
-			currentStats,
-			rankedVMs,
-			cfg.NetIfaceRate)
-
-		funcs.UpdatePreviousState(prevStats, prevScores, currentStats)
-		prevTime = now
 
 		newPopulation := make([]utils.Chromosome, cfg.PopulationSize)
 		for i := 0; i < cfg.NumElites; i++ {
@@ -257,8 +266,47 @@ func Start() {
 			newPopulation[newChildIndex] = child2
 			newChildIndex++
 		}
+
+		/*
+			FetchStats() to fetch VM stats from Proxmox VE API for logging ONLY
+		*/
+		stats, err := funcs.FetchStats(cfg, client)
+		if err != nil {
+			fmt.Printf("Polling error: %v\n", err)
+			continue
+		}
+
+		/*
+			CSV Logging only not related to the main algorithm
+		*/
+		currentStats := make(map[string]utils.VMStats)
+		for _, vm := range stats {
+			if !cfg.VMNames[vm.Name] {
+				continue
+			}
+			currentStats[vm.Name] = funcs.PreviousStats(vm, delta, cfg.NetIfaceRate, lastValidRates, prevStats, activeRates)
+		}
+
+		utils.StoreCSV(
+			cfg,
+			csvFileName,
+			&logLine,
+			fetchCount,
+			updateCount,
+			now.Unix(),
+			now.Format("2006-01-02 15:04:05"),
+			currentStats,
+			currentRes,
+			cfg.NetIfaceRate)
+
+		/*
+			Update Previous VM State for logging purpose not related to the main algorithm
+		*/
+		funcs.UpdatePreviousState(prevStats, prevScores, currentStats)
+		prevTime = now
+
 		population = newPopulation
 		iter++
-		time.Sleep(time.Duration(cfg.GenerateDelay) * time.Millisecond)
+
 	}
 }
