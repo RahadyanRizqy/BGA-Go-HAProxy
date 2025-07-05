@@ -206,7 +206,7 @@ func Start() {
 
 			if validate1 {
 				updateCount++
-				fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d", updateCount, iter)
+				fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d\n", updateCount, iter)
 				funcs.SetWeight(currentRes, cfg)
 				utils.ConsolePrint(currentRes, cfg)
 				for name, info := range currentRes {
@@ -218,7 +218,7 @@ func Start() {
 
 			if validate2 {
 				updateCount++
-				fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d", updateCount, iter)
+				fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d\n", updateCount, iter)
 				funcs.SetWeight(currentRes, cfg)
 				utils.ConsolePrint(currentRes, cfg)
 				for name, info := range currentRes {
