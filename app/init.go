@@ -183,6 +183,26 @@ func Start() {
 		fetchCount++
 
 		/*
+			FetchStats() to fetch VM stats from Proxmox VE API for logging ONLY
+		*/
+		stats, err := funcs.FetchStats(cfg, client)
+		if err != nil {
+			fmt.Printf("Polling error: %v\n", err)
+			continue
+		}
+
+		/*
+			CSV Logging only not related to the main algorithm
+		*/
+		currentStats := make(map[string]utils.VMStats)
+		for _, vm := range stats {
+			if !cfg.VMNames[vm.Name] {
+				continue
+			}
+			currentStats[vm.Name] = funcs.PreviousStats(vm, delta, cfg.NetIfaceRate, lastValidRates, prevStats, activeRates)
+		}
+
+		/*
 			Sort Generated Population by its Fitness
 		*/
 		sort.Slice(population, func(i, j int) bool { return population[i].Fitness < population[j].Fitness })
@@ -229,26 +249,6 @@ func Start() {
 					prevWeights[name] = info.Weight // update previous
 				}
 			}
-		}
-
-		/*
-			FetchStats() to fetch VM stats from Proxmox VE API for logging ONLY
-		*/
-		stats, err := funcs.FetchStats(cfg, client)
-		if err != nil {
-			fmt.Printf("Polling error: %v\n", err)
-			continue
-		}
-
-		/*
-			CSV Logging only not related to the main algorithm
-		*/
-		currentStats := make(map[string]utils.VMStats)
-		for _, vm := range stats {
-			if !cfg.VMNames[vm.Name] {
-				continue
-			}
-			currentStats[vm.Name] = funcs.PreviousStats(vm, delta, cfg.NetIfaceRate, lastValidRates, prevStats, activeRates)
 		}
 
 		utils.StoreCSV(
