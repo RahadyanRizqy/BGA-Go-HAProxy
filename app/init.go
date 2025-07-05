@@ -231,6 +231,38 @@ func Start() {
 			}
 		}
 
+		/*
+			FetchStats() to fetch VM stats from Proxmox VE API for logging ONLY
+		*/
+		stats, err := funcs.FetchStats(cfg, client)
+		if err != nil {
+			fmt.Printf("Polling error: %v\n", err)
+			continue
+		}
+
+		/*
+			CSV Logging only not related to the main algorithm
+		*/
+		currentStats := make(map[string]utils.VMStats)
+		for _, vm := range stats {
+			if !cfg.VMNames[vm.Name] {
+				continue
+			}
+			currentStats[vm.Name] = funcs.PreviousStats(vm, delta, cfg.NetIfaceRate, lastValidRates, prevStats, activeRates)
+		}
+
+		utils.StoreCSV(
+			cfg,
+			csvFileName,
+			&logLine,
+			fetchCount,
+			updateCount,
+			now.Unix(),
+			now.Format("2006-01-02 15:04:05"),
+			currentStats,
+			currentRes,
+			cfg.NetIfaceRate)
+
 		newPopulation := make([]utils.Chromosome, cfg.PopulationSize)
 		for i := 0; i < cfg.NumElites; i++ {
 			newPopulation[i].Genes = make([]int, cfg.NumTasks)
@@ -279,38 +311,6 @@ func Start() {
 			newPopulation[newChildIndex] = child2
 			newChildIndex++
 		}
-
-		/*
-			FetchStats() to fetch VM stats from Proxmox VE API for logging ONLY
-		*/
-		stats, err := funcs.FetchStats(cfg, client)
-		if err != nil {
-			fmt.Printf("Polling error: %v\n", err)
-			continue
-		}
-
-		/*
-			CSV Logging only not related to the main algorithm
-		*/
-		currentStats := make(map[string]utils.VMStats)
-		for _, vm := range stats {
-			if !cfg.VMNames[vm.Name] {
-				continue
-			}
-			currentStats[vm.Name] = funcs.PreviousStats(vm, delta, cfg.NetIfaceRate, lastValidRates, prevStats, activeRates)
-		}
-
-		utils.StoreCSV(
-			cfg,
-			csvFileName,
-			&logLine,
-			fetchCount,
-			updateCount,
-			now.Unix(),
-			now.Format("2006-01-02 15:04:05"),
-			currentStats,
-			currentRes,
-			cfg.NetIfaceRate)
 
 		/*
 			Update Previous VM State for logging purpose not related to the main algorithm
