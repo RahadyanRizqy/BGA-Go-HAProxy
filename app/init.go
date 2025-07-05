@@ -261,8 +261,17 @@ func Start() {
 			}
 			mutation(&child1)
 			mutation(&child2)
-			funcs.ResultBalancer(&child1, cfg, vmShareIdeal)
-			funcs.ResultBalancer(&child2, cfg, vmShareIdeal)
+			// child1Before := child1
+			// child2Before := child2
+			if cfg.Balancer {
+				funcs.ResultBalancer(&child1, cfg, vmShareIdeal)
+				funcs.ResultBalancer(&child2, cfg, vmShareIdeal)
+			}
+			// fmt.Println("ITER ", iter)
+			// utils.PrintDiffMark(child1Before, child1, "Child 1")
+			// utils.PrintDiffMark(child2Before, child2, "Child 2")
+			// fmt.Println("======================================")
+
 			fitnessCalc(&child1)
 			fitnessCalc(&child2)
 			newPopulation[newChildIndex] = child1

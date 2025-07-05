@@ -88,4 +88,5 @@ type BgaEnv struct {
 	PositiveConst  float64
 	Strict         bool
 	UpdateNotify   bool
+	Balancer       bool
 }

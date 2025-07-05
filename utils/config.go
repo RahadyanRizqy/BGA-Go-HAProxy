@@ -120,6 +120,12 @@ func LoadBgaEnv() BgaEnv {
 		updateNotify = false
 	}
 
+	balancer, err := strconv.ParseBool(os.Getenv("BALANCER"))
+	if err != nil {
+		fmt.Println("Error parsing boolean:", err)
+		balancer = false
+	}
+
 	return BgaEnv{
 		APIToken:       os.Getenv("API_TOKEN"),   // for logging purpose
 		PveAPIURL:      os.Getenv("PVE_API_URL"), // for logging purpose
@@ -142,5 +148,6 @@ func LoadBgaEnv() BgaEnv {
 		TaskLoad:       taskLoad,
 		PositiveConst:  positiveConst,
 		Strict:         strict,
+		Balancer:       balancer,
 	}
 }
