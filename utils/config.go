@@ -114,6 +114,12 @@ func LoadBgaEnv() BgaEnv {
 		strict = false
 	}
 
+	updateNotify, err := strconv.ParseBool(os.Getenv("UPDATE_NOTIFY"))
+	if err != nil {
+		fmt.Println("Error parsing boolean:", err)
+		updateNotify = false
+	}
+
 	return BgaEnv{
 		APIToken:       os.Getenv("API_TOKEN"),   // for logging purpose
 		PveAPIURL:      os.Getenv("PVE_API_URL"), // for logging purpose
@@ -122,6 +128,7 @@ func LoadBgaEnv() BgaEnv {
 		VMNames:        parseVMMap(os.Getenv("VM_NAMES")),
 		NetIfaceRate:   netIfaceRate,
 		BgaUpdater:     bgaUpdater,
+		UpdateNotify:   updateNotify,
 		HAProxyWeight:  haproxyWeight,
 		Logger:         logger,
 		ConsolePrint:   consolePrint,

@@ -48,7 +48,7 @@ func SetWeight(ranked map[string]utils.VMRank, cfg utils.BgaEnv) error {
 				fmt.Printf("Gagal set weight untuk %s: %v\nOutput: %s\n", vmName, err, string(output))
 				continue
 			}
-			if cfg.ConsolePrint {
+			if cfg.UpdateNotify {
 				fmt.Printf("Set weight untuk %s: %d\n", vmName, weight)
 			}
 		}

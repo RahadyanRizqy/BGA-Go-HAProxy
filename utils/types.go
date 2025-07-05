@@ -87,4 +87,5 @@ type BgaEnv struct {
 	TaskLoad       float64 // TaskLoad = VMPower
 	PositiveConst  float64
 	Strict         bool
+	UpdateNotify   bool
 }
