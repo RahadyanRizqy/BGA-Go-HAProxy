@@ -294,10 +294,12 @@ func Start() {
 			}
 			mutation(&child1)
 			mutation(&child2)
+
 			if cfg.Balancer {
 				funcs.ResultBalancer(&child1, cfg, vmShareIdeal)
 				funcs.ResultBalancer(&child2, cfg, vmShareIdeal)
 			}
+
 			fitnessCalc(&child1)
 			fitnessCalc(&child2)
 			newPopulation[newChildIndex] = child1

@@ -12,7 +12,7 @@ func ConsolePrint(ranked map[string]VMRank, cfg BgaEnv) error {
 	if cfg.ConsolePrint {
 		fmt.Println("\n== Detailed Output ==")
 		for name, vm := range ranked {
-			fmt.Printf("%s\tWeight: %d\tPriority: %d\tValue: %.6f\tFitness: %.6f\n",
+			fmt.Printf("%s\tWeight: %d\tPriority: %d\tValue: %.f\tFitness: %.6f\n",
 				name, vm.Weight, vm.Priority, vm.Value, vm.Fitness)
 		}
 		fmt.Printf("\n")
