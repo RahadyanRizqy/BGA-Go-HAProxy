@@ -24,6 +24,8 @@ var (
 	fetchCount     int
 	updateCount    int
 	logLine        int = 1
+	validate       bool
+	mode           string
 )
 
 func InitClient() {
@@ -154,9 +156,6 @@ func mutation(k *utils.Chromosome) {
 
 func Start() {
 	fmt.Println("BGA Started!")
-	if cfg.Strict {
-		fmt.Println("Strict mode!")
-	}
 
 	/*
 		Random Seed Initialization
@@ -224,36 +223,29 @@ func Start() {
 		/*
 			Strict or Loose
 		*/
-		if cfg.Strict { // Strict means new weight of each VM must different from previous one
-			validate1 := funcs.AllWeightValidation(currentRes, prevWeights)
+		if cfg.Strict {
+			validate = funcs.AllWeightValidation(currentRes, prevWeights)
+			mode = "STRICT"
+		} else {
+			validate = funcs.SomeWeightValidation(currentRes, prevWeights)
+			mode = "LOOSE"
+		}
 
-			if validate1 {
-				updateCount++
-				if cfg.UpdateNotify {
-					fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d\n", updateCount, iter)
-				}
-				funcs.SetWeight(currentRes, cfg)
-				utils.ConsolePrint(currentRes, cfg)
-				for name, info := range currentRes {
-					prevWeights[name] = info.Weight // update previous
-				}
+		if validate {
+			updateCount++
+			if cfg.UpdateNotify {
+				fmt.Printf("✅ [%s] UPDATE COUNT %d ITER COUNT %d\n", mode, updateCount, iter)
 			}
-		} else { // Loose means new weight of each VM has swapped not all but some
-			validate2 := funcs.SomeWeightValidation(currentRes, prevWeights)
-
-			if validate2 {
-				updateCount++
-				if cfg.UpdateNotify {
-					fmt.Printf("✅ UPDATE COUNT %d ITER COUNT %d\n", updateCount, iter)
-				}
-				funcs.SetWeight(currentRes, cfg)
-				utils.ConsolePrint(currentRes, cfg)
-				for name, info := range currentRes {
-					prevWeights[name] = info.Weight // update previous
-				}
+			funcs.SetWeight(currentRes, cfg)
+			utils.ConsolePrint(currentRes, cfg)
+			for name, info := range currentRes {
+				prevWeights[name] = info.Weight // update previous
 			}
 		}
 
+		/*
+			Logger
+		*/
 		utils.StoreCSV(
 			cfg,
 			csvFileName,
