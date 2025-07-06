@@ -314,7 +314,6 @@ func Start() {
 			newChildIndex++
 		}
 		population = newPopulation // Population modified to be used later again as the currentBest
-
 		prevTime = now
 		iter++
 	}
