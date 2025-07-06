@@ -171,6 +171,9 @@ func Start() {
 		fitnessCalc(&population[i])
 	}
 
+	/*
+		Initialization of HTTP Client for FetchStats()
+	*/
 	InitClient()
 	csvFileName := utils.InitCSV(cfg)
 	prevTime := time.Now()
@@ -263,6 +266,12 @@ func Start() {
 			currentRes,
 			cfg.NetIfaceRate)
 
+		/*
+			Update Previous VM State for logging purpose not related to the main algorithm
+		*/
+		funcs.UpdatePreviousState(prevStats, prevScores, currentStats)
+
+		/* Looping Mechanism */
 		newPopulation := make([]utils.Chromosome, cfg.PopulationSize)
 		for i := 0; i < cfg.NumElites; i++ {
 			newPopulation[i].Genes = make([]int, cfg.NumTasks)
@@ -293,17 +302,10 @@ func Start() {
 			}
 			mutation(&child1)
 			mutation(&child2)
-			// child1Before := child1
-			// child2Before := child2
 			if cfg.Balancer {
 				funcs.ResultBalancer(&child1, cfg, vmShareIdeal)
 				funcs.ResultBalancer(&child2, cfg, vmShareIdeal)
 			}
-			// fmt.Println("ITER ", iter)
-			// utils.PrintDiffMark(child1Before, child1, "Child 1")
-			// utils.PrintDiffMark(child2Before, child2, "Child 2")
-			// fmt.Println("======================================")
-
 			fitnessCalc(&child1)
 			fitnessCalc(&child2)
 			newPopulation[newChildIndex] = child1
@@ -311,15 +313,9 @@ func Start() {
 			newPopulation[newChildIndex] = child2
 			newChildIndex++
 		}
+		population = newPopulation // Population modified to be used later again as the currentBest
 
-		/*
-			Update Previous VM State for logging purpose not related to the main algorithm
-		*/
-		funcs.UpdatePreviousState(prevStats, prevScores, currentStats)
 		prevTime = now
-
-		population = newPopulation
 		iter++
-
 	}
 }
