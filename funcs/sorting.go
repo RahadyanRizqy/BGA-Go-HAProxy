@@ -33,16 +33,17 @@ func CalcPriorityWeight(chromosome utils.Chromosome, cfg utils.BgaEnv) map[strin
 
 	// Step 2: Ambil nama VM dan urutkan
 	var vmNames []string
-	for name := range cfg.VMNames {
-		vmNames = append(vmNames, name)
+	for _, vm := range cfg.VMDetails {
+		vmNames = append(vmNames, vm.Name)
 	}
+
 	sort.Strings(vmNames)
 
 	// Step 3: Buat slice untuk menyimpan informasi VM
 	var infos []utils.VMInfo
 	for idx, name := range vmNames {
 		vmID := idx + 1
-		load := float64(taskCounts[vmID]) * cfg.TaskLoad
+		load := float64(taskCounts[vmID]) * cfg.TaskSize
 		infos = append(infos, utils.VMInfo{
 			Name: name,
 			Load: load,
@@ -52,7 +53,7 @@ func CalcPriorityWeight(chromosome utils.Chromosome, cfg utils.BgaEnv) map[strin
 
 	// Step 4: Urutkan berdasarkan Load descending (terbesar dulu)
 	sort.Slice(infos, func(i, j int) bool {
-		return infos[i].Load > infos[j].Load
+		return infos[i].Load < infos[j].Load
 	})
 
 	// Step 5: Hitung distribusi bobot (descending)

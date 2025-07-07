@@ -10,16 +10,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func parseVMMap(env string) map[string]bool {
-	result := make(map[string]bool)
-	for _, vm := range strings.Split(env, ",") {
-		if trimmed := strings.TrimSpace(vm); trimmed != "" {
-			result[trimmed] = true
-		}
-	}
-	return result
-}
-
 func LoadBgaEnv() BgaEnv {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading .env file")
@@ -96,10 +86,10 @@ func LoadBgaEnv() BgaEnv {
 		generateDelay = 1000
 	}
 
-	taskLoad, err := strconv.ParseFloat(os.Getenv("TASK_LOAD"), 64)
+	taskSize, err := strconv.ParseFloat(os.Getenv("TASK_SIZE"), 64)
 	if err != nil {
 		fmt.Println("12. Error parsing boolean", err)
-		taskLoad = 1.0
+		taskSize = 1.0
 	}
 
 	positiveConst, err := strconv.ParseFloat(os.Getenv("POSITIVE_CONST"), 64)
@@ -126,12 +116,28 @@ func LoadBgaEnv() BgaEnv {
 		balancer = false
 	}
 
+	names := strings.Split(os.Getenv("VM_NAMES"), ",")
+	ghz := strings.Split(os.Getenv("VM_GHZ"), ",")
+
+	vmDetails := []VMInfo{}
+	for i := range names {
+		name := strings.TrimSpace(names[i])
+		ghz, err := strconv.ParseFloat(strings.TrimSpace(ghz[i]), 64)
+		if err != nil {
+			panic("Gagal parsing GHz ke float")
+		}
+		vmDetails = append(vmDetails, VMInfo{
+			Name: name,
+			GHz:  ghz,
+		})
+	}
+
 	return BgaEnv{
 		APIToken:       os.Getenv("API_TOKEN"),   // for logging purpose
 		PveAPIURL:      os.Getenv("PVE_API_URL"), // for logging purpose
 		HAProxySock:    os.Getenv("HAPROXY_SOCK"),
 		HAProxyBackend: os.Getenv("HAPROXY_BACKEND"),
-		VMNames:        parseVMMap(os.Getenv("VM_NAMES")),
+		VMDetails:      vmDetails,
 		NetIfaceRate:   netIfaceRate,
 		BgaUpdater:     bgaUpdater,
 		UpdateNotify:   updateNotify,
@@ -145,7 +151,7 @@ func LoadBgaEnv() BgaEnv {
 		MutationRate:   mutationRate,
 		FixedAlpha:     fixedAlpha,
 		GenerateDelay:  generateDelay,
-		TaskLoad:       taskLoad,
+		TaskSize:       taskSize,
 		PositiveConst:  positiveConst,
 		Strict:         strict,
 		Balancer:       balancer,

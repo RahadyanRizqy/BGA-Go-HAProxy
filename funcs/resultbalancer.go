@@ -13,7 +13,7 @@ func ResultBalancer(chromosome *utils.Chromosome, cfg utils.BgaEnv, vmShareIdeal
 	}
 	for taskIdx, vmID := range chromosome.Genes {
 		if vmID >= 1 && vmID <= cfg.NumVMs {
-			actualLoadVM[vmID-1] += cfg.TaskLoad
+			actualLoadVM[vmID-1] += cfg.TaskSize
 			tasksOnVM[vmID-1] = append(tasksOnVM[vmID-1], taskIdx)
 		}
 	}

@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"math"
-	"math/rand"
 	"net/http"
 	"sort"
 	"time"
@@ -36,138 +35,20 @@ func InitClient() {
 	}
 }
 
-func seedInit() {
-	rand.Seed(time.Now().UnixNano())
-}
-
-func generateRandomChromosome() utils.Chromosome {
-	genes := make([]int, cfg.NumTasks)
-	for i := range genes {
-		genes[i] = rand.Intn(cfg.NumVMs) + 1
-	}
-	return utils.Chromosome{Genes: genes}
-}
-
-func populationInit() []utils.Chromosome {
-	population := make([]utils.Chromosome, cfg.PopulationSize)
-	for i := range population {
-		population[i] = generateRandomChromosome()
-	}
-	return population
-}
-
-func fitnessCalc(k *utils.Chromosome) {
-	load := make([]float64, cfg.NumVMs)
-	for _, vm := range k.Genes {
-		load[vm-1] += cfg.TaskLoad
-	}
-
-	makespan := 0.0
-	for _, l := range load {
-		et := l / cfg.TaskLoad
-		if et > makespan {
-			makespan = et
-		}
-	}
-
-	psuTotal := 0.0
-	for _, l := range load {
-		psuRaw := (l / float64(vmShareIdeal)) * 100.0
-		if l == 0 && vmShareIdeal == 0 {
-			psuRaw = 100
-		} else if vmShareIdeal == 0 {
-			psuRaw = math.Inf(1)
-		}
-		psuNorm := psuRaw / 100.0
-		if psuRaw > 100.0 {
-			psuNorm = (100.0 - (psuRaw - 100.0)) / 100.0
-		}
-		if psuNorm < 0 {
-			psuNorm = 0
-		}
-		psuTotal += psuNorm
-	}
-
-	k.Fitness = makespan + (1.0 - (psuTotal / float64(cfg.NumVMs)))
-}
-
-func proportionalSelection(pop []utils.Chromosome) utils.Chromosome {
-	fBest := pop[0].Fitness
-	for _, k := range pop {
-		if k.Fitness < fBest {
-			fBest = k.Fitness
-		}
-	}
-
-	sf := make([]float64, len(pop))
-	total := 0.0
-	for i, k := range pop {
-		s := 1.0 / (cfg.PositiveConst + (k.Fitness - fBest))
-		sf[i] = s
-		total += s
-	}
-
-	r := rand.Float64() * total
-	c := 0.0
-	for i, s := range sf {
-		c += s
-		if c >= r {
-			res := pop[i]
-			copyGenes := make([]int, cfg.NumTasks)
-			copy(copyGenes, res.Genes)
-			return utils.Chromosome{Genes: copyGenes, Fitness: res.Fitness}
-		}
-	}
-	return pop[len(pop)-1]
-}
-
-func crossoverSinglePoint(p1, p2 utils.Chromosome) (utils.Chromosome, utils.Chromosome) {
-	a1 := utils.Chromosome{Genes: make([]int, cfg.NumTasks)}
-	a2 := utils.Chromosome{Genes: make([]int, cfg.NumTasks)}
-	copy(a1.Genes, p1.Genes)
-	copy(a2.Genes, p2.Genes)
-	point := rand.Intn(cfg.NumTasks-1) + 1
-	for i := point; i < cfg.NumTasks; i++ {
-		a1.Genes[i], a2.Genes[i] = a2.Genes[i], a1.Genes[i]
-	}
-	return a1, a2
-}
-
-func crossoverTwoPoint(p1, p2 utils.Chromosome) (utils.Chromosome, utils.Chromosome) {
-	point1 := rand.Intn(cfg.NumTasks - 1)
-	point2 := rand.Intn(cfg.NumTasks-point1-1) + point1 + 1
-	a1 := utils.Chromosome{Genes: make([]int, cfg.NumTasks)}
-	a2 := utils.Chromosome{Genes: make([]int, cfg.NumTasks)}
-	copy(a1.Genes, p1.Genes)
-	copy(a2.Genes, p2.Genes)
-	for i := point1; i < point2; i++ {
-		a1.Genes[i], a2.Genes[i] = a2.Genes[i], a1.Genes[i]
-	}
-	return a1, a2
-}
-
-func mutation(k *utils.Chromosome) {
-	for i := range k.Genes {
-		if rand.Float64() < cfg.MutationRate {
-			k.Genes[i] = rand.Intn(cfg.NumVMs) + 1
-		}
-	}
-}
-
 func Start() {
 	fmt.Println("BGA Started!")
 
 	/*
 		Random Seed Initialization
 	*/
-	seedInit()
-	population := populationInit()
+	funcs.SeedInit()
+	population := funcs.PopulationInit(cfg)
 
 	/*
 		Fitness Calculation
 	*/
 	for i := 0; i < cfg.PopulationSize; i++ {
-		fitnessCalc(&population[i])
+		funcs.FitnessCalc(&population[i], cfg)
 	}
 
 	/*
@@ -196,9 +77,14 @@ func Start() {
 		/*
 			CSV Logging only not related to the main algorithm
 		*/
+		validVMs := make(map[string]bool)
+		for _, vm := range cfg.VMDetails {
+			validVMs[vm.Name] = true
+		}
+
 		currentStats := make(map[string]utils.VMStats)
 		for _, vm := range stats {
-			if !cfg.VMNames[vm.Name] {
+			if !validVMs[vm.Name] {
 				continue
 			}
 			currentStats[vm.Name] = funcs.PreviousStats(vm, delta, cfg.NetIfaceRate, lastValidRates, prevStats, activeRates)
@@ -283,25 +169,25 @@ func Start() {
 				break
 			}
 
-			parent1 := proportionalSelection(population)
-			parent2 := proportionalSelection(population)
+			parent1 := funcs.ProportionalSelection(population, cfg)
+			parent2 := funcs.ProportionalSelection(population, cfg)
 
 			var child1, child2 utils.Chromosome
 			if opCount < numSinglePointOps {
-				child1, child2 = crossoverSinglePoint(parent1, parent2)
+				child1, child2 = funcs.CrossoverSinglePoint(parent1, parent2, cfg)
 			} else {
-				child1, child2 = crossoverTwoPoint(parent1, parent2)
+				child1, child2 = funcs.CrossoverTwoPoint(parent1, parent2, cfg)
 			}
-			mutation(&child1)
-			mutation(&child2)
+			funcs.Mutation(&child1, cfg)
+			funcs.Mutation(&child2, cfg)
 
 			if cfg.Balancer {
 				funcs.ResultBalancer(&child1, cfg, vmShareIdeal)
 				funcs.ResultBalancer(&child2, cfg, vmShareIdeal)
 			}
 
-			fitnessCalc(&child1)
-			fitnessCalc(&child2)
+			funcs.FitnessCalc(&child1, cfg)
+			funcs.FitnessCalc(&child2, cfg)
 			newPopulation[newChildIndex] = child1
 			newChildIndex++
 			newPopulation[newChildIndex] = child2

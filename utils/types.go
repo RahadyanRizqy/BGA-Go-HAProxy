@@ -34,6 +34,7 @@ type VMInfo struct {
 	Name string
 	Load float64
 	ID   int // numerik ID (1-based)
+	GHz  float64
 }
 
 type ActiveRates struct {
@@ -70,7 +71,7 @@ type BgaEnv struct {
 	PveAPIURL      string
 	HAProxySock    string
 	HAProxyBackend string
-	VMNames        map[string]bool
+	VMDetails      []VMInfo
 	NetIfaceRate   float64
 	BgaUpdater     bool
 	HAProxyWeight  int
@@ -84,7 +85,7 @@ type BgaEnv struct {
 	FixedAlpha     float64
 	GenerateDelay  int
 	FetchDelay     int
-	TaskLoad       float64 // TaskLoad = VMPower
+	TaskSize       float64 // or TaskLoad = VMPower
 	PositiveConst  float64
 	Strict         bool
 	UpdateNotify   bool
