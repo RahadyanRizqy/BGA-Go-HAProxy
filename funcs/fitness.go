@@ -25,7 +25,7 @@ func CalcVMShare(shareRatios []float64, totalTaskSize float64) []float64 {
 	return vmShares
 }
 
-func CalcShareUsed(taskSizes []float64, genes []int, numVMs int) []float64 {
+func CalcShareUsed(taskSizes []float64, genes []int, numVMs int) []float64 { // Shared Used
 	shareUsed := make([]float64, numVMs)
 	for i, vmID := range genes {
 		if vmID >= 1 && vmID <= numVMs {
@@ -89,6 +89,6 @@ func FitnessCalc(k *utils.Chromosome, cfg utils.BgaEnv) {
 		psuTotal += psuNorm
 	}
 
-	avgPSU := psuTotal / float64(numVMs)
-	k.Fitness = makespan + (1.0 - avgPSU)
+	avgPSU := 1.0 - (psuTotal / float64(numVMs))
+	k.Fitness = makespan + avgPSU
 }

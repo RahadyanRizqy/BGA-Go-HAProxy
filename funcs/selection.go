@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-func ProportionalSelection(pop []utils.Chromosome, cfg utils.BgaEnv) utils.Chromosome {
+func Selection(pop []utils.Chromosome, cfg utils.BgaEnv) utils.Chromosome {
 	fBest := pop[0].Fitness
 	for _, k := range pop {
 		if k.Fitness < fBest {

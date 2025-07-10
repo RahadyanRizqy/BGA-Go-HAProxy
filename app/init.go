@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	cfg            = utils.LoadBgaEnv()
-	vmShareIdeal   = float64(cfg.NumTasks / cfg.NumVMs)
+	cfg = utils.LoadBgaEnv()
+	// vmShareIdeal   = float64(cfg.NumTasks / cfg.NumVMs)
 	prevStats      = make(map[string]utils.VM)
 	prevScores     = make(map[string]float64)
 	prevWeights    = make(map[string]int)
@@ -169,8 +169,8 @@ func Start() {
 				break
 			}
 
-			parent1 := funcs.ProportionalSelection(population, cfg)
-			parent2 := funcs.ProportionalSelection(population, cfg)
+			parent1 := funcs.Selection(population, cfg)
+			parent2 := funcs.Selection(population, cfg)
 
 			var child1, child2 utils.Chromosome
 			if opCount < numSinglePointOps {
@@ -182,17 +182,19 @@ func Start() {
 			funcs.Mutation(&child2, cfg)
 
 			if cfg.Balancer {
-				funcs.ResultBalancer(&child1, cfg, vmShareIdeal)
-				funcs.ResultBalancer(&child2, cfg, vmShareIdeal)
+				funcs.Balancer(&child1, cfg)
+				funcs.Balancer(&child2, cfg)
 			}
 
 			funcs.FitnessCalc(&child1, cfg)
 			funcs.FitnessCalc(&child2, cfg)
+
 			newPopulation[newChildIndex] = child1
 			newChildIndex++
 			newPopulation[newChildIndex] = child2
 			newChildIndex++
 		}
+		fmt.Println(population)
 		population = newPopulation // Population modified to be used later again as the currentBest
 		prevTime = now
 		iter++
